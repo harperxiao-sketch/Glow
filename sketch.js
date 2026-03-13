@@ -1,13 +1,12 @@
-let brightness = 0;
-
 let port;
 let reader;
 
-let fireflies = [];
+let brightness = 0;
 
-let wind = 0;
+let plantHeight = 0;
+let targetGrowth = 0;
 
-let flowers = [];
+let stem = [];
 
 async function connectArduino(){
 
@@ -39,6 +38,8 @@ if(!isNaN(val)){
 
 brightness = val;
 
+targetGrowth = map(brightness,0,255,0,350);
+
 }
 
 }
@@ -47,7 +48,7 @@ brightness = val;
 
 function setup(){
 
-createCanvas(800,700);
+createCanvas(700,700);
 
 document
 .getElementById("connect")
@@ -57,79 +58,39 @@ document
 
 function draw(){
 
-drawEnvironment();
-
-wind = sin(frameCount * 0.02) * 0.3;
+background(0);
 
 translate(width/2,height);
 
-let growth = map(brightness,0,255,60,350);
+drawGround();
 
-drawBranch(0,0,growth,-PI/2,7);
+growPlant();
 
-drawFireflies();
-
-}
-
-function drawEnvironment(){
-
-let night = map(brightness,0,255,10,50);
-
-for(let y=0;y<height;y++){
-
-let inter = map(y,0,height,0,1);
-
-let c = lerpColor(color(10,night,20),color(0,0,0),inter);
-
-stroke(c);
-
-line(0,y,width,y);
+drawPlant();
 
 }
 
-}
+function drawGround(){
 
-function drawBranch(x,y,len,angle,depth){
-
-if(depth==0) return;
-
-stroke(80,255,140);
-
-strokeWeight(depth);
-
-let sway = wind * depth;
-
-let x2 = x + cos(angle+sway)*len;
-
-let y2 = y + sin(angle+sway)*len;
-
-line(x,y,x2,y2);
-
-if(depth<4){
-
-spawnFirefly(x2,y2);
-
-spawnFlower(x2,y2);
+stroke(50);
+line(-width,0,width,0);
 
 }
 
-drawBranch(x2,y2,len*0.7,angle+PI/5,depth-1);
+function growPlant(){
 
-drawBranch(x2,y2,len*0.7,angle-PI/5,depth-1);
+if(plantHeight < targetGrowth){
 
-}
+plantHeight += 0.4;
 
-function spawnFirefly(x,y){
+if(frameCount % 8 === 0){
 
-if(random()<0.02){
+let xOffset = random(-5,5);
 
-fireflies.push({
+stem.push({
 
-x:x,
-y:y,
-vx:random(-0.5,0.5),
-vy:random(-1,-0.2),
-life:255
+x:xOffset,
+y:-plantHeight
 
 });
 
@@ -137,57 +98,45 @@ life:255
 
 }
 
-function drawFireflies(){
+}
+
+function drawPlant(){
+
+stroke(120,255,180);
+strokeWeight(3);
+
+noFill();
+
+beginShape();
+
+vertex(0,0);
+
+for(let p of stem){
+
+curveVertex(p.x,p.y);
+
+}
+
+endShape();
+
+drawLeaves();
+
+}
+
+function drawLeaves(){
+
+for(let i=10;i<stem.length;i+=20){
+
+let p = stem[i];
+
+let glow = map(brightness,0,255,80,200);
+
+fill(120,255,180,glow);
 
 noStroke();
 
-for(let i=fireflies.length-1;i>=0;i--){
-
-let f = fireflies[i];
-
-fill(150,255,200,f.life);
-
-ellipse(f.x,f.y,5);
-
-f.x += f.vx;
-
-f.y += f.vy;
-
-f.life -= 3;
-
-if(f.life<=0){
-
-fireflies.splice(i,1);
-
-}
-
-}
-
-}
-
-function spawnFlower(x,y){
-
-if(random()<0.005){
-
-flowers.push({
-
-x:x,
-y:y,
-size:random(5,10)
-
-});
-
-}
-
-}
-
-function drawFlowers(){
-
-for(let f of flowers){
-
-fill(255,120,200);
-
-ellipse(f.x,f.y,f.size);
+ellipse(p.x+6,p.y,10,6);
+ellipse(p.x-6,p.y,10,6);
 
 }
 
