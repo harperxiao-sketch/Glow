@@ -3,10 +3,15 @@ let reader;
 
 let brightness = 0;
 
-let plantHeight = 0;
-let targetGrowth = 0;
+let growth = 0;
 
-let stem = [];
+let branches = [];
+
+let birds = [];
+
+let wind = 0;
+
+
 
 async function connectArduino(){
 
@@ -24,6 +29,8 @@ readSerial();
 
 }
 
+
+
 async function readSerial(){
 
 while(true){
@@ -38,17 +45,17 @@ if(!isNaN(val)){
 
 brightness = val;
 
-targetGrowth = map(brightness,0,255,0,350);
-
 }
 
 }
 
 }
+
+
 
 function setup(){
 
-createCanvas(700,700);
+createCanvas(900,600);
 
 document
 .getElementById("connect")
@@ -56,88 +63,170 @@ document
 
 }
 
+
+
 function draw(){
 
 background(0);
 
-translate(width/2,height);
+wind = sin(frameCount * 0.01) * 0.2;
 
 drawGround();
 
-growPlant();
+drawTree();
 
-drawPlant();
+drawBirds();
 
 }
+
+
 
 function drawGround(){
 
-stroke(50);
-line(-width,0,width,0);
+stroke(40);
+
+line(0,height-80,width,height-80);
 
 }
 
-function growPlant(){
 
-if(plantHeight < targetGrowth){
 
-plantHeight += 0.4;
+function drawTree(){
 
-if(frameCount % 8 === 0){
+translate(width/2,height-80);
 
-let xOffset = random(-5,5);
+let target = map(brightness,0,255,20,220);
 
-stem.push({
+if(growth < target){
 
-x:xOffset,
-y:-plantHeight
+growth += 0.4;
+
+}
+
+
+
+stroke(180,255,200);
+
+strokeWeight(4);
+
+
+
+drawBranch(0,0,growth,-PI/2,5);
+
+}
+
+
+
+function drawBranch(x,y,len,angle,depth){
+
+if(depth <= 0) return;
+
+
+
+let sway = wind * depth;
+
+let x2 = x + cos(angle + sway) * len;
+
+let y2 = y + sin(angle + sway) * len;
+
+
+
+line(x,y,x2,y2);
+
+
+
+if(depth < 3){
+
+drawLeaf(x2,y2);
+
+}
+
+
+
+drawBranch(x2,y2,len*0.7,angle + PI/6,depth-1);
+
+drawBranch(x2,y2,len*0.7,angle - PI/6,depth-1);
+
+}
+
+
+
+function drawLeaf(x,y){
+
+noStroke();
+
+fill(150,255,200,180);
+
+ellipse(x,y,8,5);
+
+}
+
+
+
+function drawBirds(){
+
+
+
+if(random() < 0.01){
+
+birds.push({
+
+x:-20,
+
+y:random(100,300),
+
+speed:random(1,2)
 
 });
 
 }
 
-}
 
-}
 
-function drawPlant(){
-
-stroke(120,255,180);
-strokeWeight(3);
+stroke(200);
 
 noFill();
 
+
+
+for(let i=birds.length-1;i>=0;i--){
+
+let b = birds[i];
+
+
+
+drawBird(b.x,b.y);
+
+
+
+b.x += b.speed;
+
+
+
+if(b.x > width+20){
+
+birds.splice(i,1);
+
+}
+
+}
+
+
+
+}
+
+
+
+function drawBird(x,y){
+
 beginShape();
 
-vertex(0,0);
+vertex(x,y);
 
-for(let p of stem){
+vertex(x+8,y-5);
 
-curveVertex(p.x,p.y);
-
-}
+vertex(x+16,y);
 
 endShape();
-
-drawLeaves();
-
-}
-
-function drawLeaves(){
-
-for(let i=10;i<stem.length;i+=20){
-
-let p = stem[i];
-
-let glow = map(brightness,0,255,80,200);
-
-fill(120,255,180,glow);
-
-noStroke();
-
-ellipse(p.x+6,p.y,10,6);
-ellipse(p.x-6,p.y,10,6);
-
-}
 
 }
