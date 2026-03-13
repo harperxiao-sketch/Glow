@@ -1,0 +1,22 @@
+body{
+
+background:#0b0f0d;
+color:white;
+font-family:Arial;
+text-align:center;
+
+}
+
+canvas{
+
+border:1px solid #222;
+
+}
+
+button{
+
+font-size:20px;
+padding:10px 20px;
+margin:20px;
+
+}
